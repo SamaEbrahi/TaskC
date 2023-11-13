@@ -1,69 +1,88 @@
 #include <stdio.h>
 #include <string.h>
 
-// Structure to hold user information
+#define MAX_USERS 100
+#define MAX_USERNAME_LENGTH 20
+#define MAX_PASSWORD_LENGTH 20
+
 struct User {
-    char username[100];
-    char password[100];
+    char username[MAX_USERNAME_LENGTH];
+    char password[MAX_PASSWORD_LENGTH];
 };
 
-// Function to register a new user
-void registerUser(struct User users[], int *count) {
+union UserDetails {
+    struct User user;
+    int isActive; // Flag to indicate whether the user is active (1) or not (0)
+};
+
+union UserDetails users[MAX_USERS];
+int numUsers = 0;
+
+int registerUser() {
+    if (numUsers >= MAX_USERS) {
+        printf("Maximum number of users reached.\n");
+        return 0;
+    }
+
     printf("Enter username: ");
-    scanf("%s", users[*count].username);
+    scanf("%s", users[numUsers].user.username);
+
     printf("Enter password: ");
-    scanf("%s", users[*count].password);
-    *count += 1;
+    scanf("%s", users[numUsers].user.password);
+
+    printf("Set isActive flag (1 for true, 0 for false): ");
+    scanf("%d", &users[numUsers].isActive);
+
+    numUsers++;
+    printf("Registration successful.\n");
+    return 1;
 }
 
-// Function to login a user
-int loginUser(struct User users[], int count) {
-    char username[100];
-    char password[100];
+int loginUser() {
+    char username[MAX_USERNAME_LENGTH];
+    char password[MAX_PASSWORD_LENGTH];
+
     printf("Enter username: ");
     scanf("%s", username);
+
     printf("Enter password: ");
     scanf("%s", password);
-    
-    for (int i = 0; i < count; i++) {
-        if (strcmp(username, users[i].username) == 0 && strcmp(password, users[i].password) == 0) {
-            printf("Login successful! Welcome, %s!\n", users[i].username);
+
+    for (int i = 0; i < numUsers; i++) {
+        if (strcmp(username, users[i].user.username) == 0 &&
+            strcmp(password, users[i].user.password) == 0 &&
+            users[i].isActive) { // Check if the user is active
+            printf("Login successful.\n");
             return 1;
         }
     }
-    
-    printf("Login failed. Invalid username or password.\n");
+
+    printf("Invalid username or password, or user is not active.\n");
     return 0;
 }
 
 int main() {
-    struct User users[100]; // Maximum of 100 users
-    int count = 0; // Number of registered users
-    
     int choice;
+
     do {
-        printf("1. Register\n");
-        printf("2. Login\n");
-        printf("3. Exit\n");
+        printf("Enter 1 to Register:\n");
+        printf("Enter 2 to Login:\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
-        
-        switch(choice) {
+
+        switch (choice) {
             case 1:
-                registerUser(users, &count);
+                registerUser();
                 break;
             case 2:
-                if (loginUser(users, count))
-                    return 0; // Successful login, exit program
-                break;
-            case 3:
-                printf("Exiting program...\n");
+                loginUser();
                 break;
             default:
                 printf("Invalid choice. Please try again.\n");
-                break;
         }
-    } while (choice != 3);
-    
+
+        printf("\n");
+    } while (choice);
+
     return 0;
 }
